@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Signup = () => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "user" });
@@ -9,17 +10,18 @@ const Signup = () => {
     e.preventDefault();
     const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
     
-  
-    if (existingUsers.some(u => u.email === formData.email)) {
-      alert("This email is already registered.");
+  if (existingUsers.some(u => u.email === formData.email)) {
+      toast.error("This email is already registered."); // Error toast
       return;
     }
 
     const updatedUsers = [...existingUsers, formData];
     localStorage.setItem("users", JSON.stringify(updatedUsers));
     
-    alert("Account created! You can now login.");
-    navigate("/login");
+   toast.success(`Welcome to the fold, ${formData.name}!`);
+   setTimeout(() => {
+      navigate("/login");
+    }, 1000);
   };
 
   return (
