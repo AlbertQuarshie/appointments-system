@@ -4,13 +4,18 @@ import toast from "react-hot-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+ const [user, setUser] = useState(() => {
+    return JSON.parse(localStorage.getItem("user")) || null;
+  });
 
+ useEffect(() => {
+    const handleStorageChange = () => {
+      const loggedInUser = JSON.parse(localStorage.getItem("user"));
+      setUser(loggedInUser);
+    };
 
-  useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem("user"));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUser(loggedInUser);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const handleLogout = () => {
