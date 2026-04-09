@@ -1,7 +1,12 @@
-import { services } from "../data/services";
+import { useState} from "react";
 import { Link } from "react-router-dom";
 
 const Services = () => {
+
+  const [services] = useState(() => {
+    const saved = localStorage.getItem("services");
+    return saved ? JSON.parse(saved) : [];
+  });
   return (
     <div className="bg-white py-12 px-6">
       <div className="max-w-6xl mx-auto">
