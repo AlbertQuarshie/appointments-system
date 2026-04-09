@@ -30,30 +30,6 @@ export const services = [
     duration: 90,
     description: "Haircut, beard trim, and a relaxing facial treatment.",
     image: "https://images.unsplash.com/photo-1599351431247-f579338af7d2?w=400&q=80"
-  }
-  ,
-  {
-    id: 5,
-    name: "Beard Trim & Sculpt",
-    price: 600,
-    duration: 20,
-    description: "Expert beard shaping with straight razor detailing.",
-    image: "https://images.unsplash.com/photo-1621605815841-aa897af07532?w=400&q=80"
   },
-  {
-    id: 6,
-    name: "Beard Trim & Sculpt",
-    price: 600,
-    duration: 20,
-    description: "Expert beard shaping with straight razor detailing.",
-    image: "https://images.unsplash.com/photo-1621605815841-aa897af07532?w=400&q=80"
-  },
-  {
-    id: 7,
-    name: "Beard Trim & Sculpt",
-    price: 600,
-    duration: 20,
-    description: "Expert beard shaping with straight razor detailing.",
-    image: "https://images.unsplash.com/photo-1621605815841-aa897af07532?w=400&q=80"
-  },
+
 ];
