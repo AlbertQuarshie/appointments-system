@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { services as initialServices } from "../data/services";
 
 const AdminDashboard = () => {
+  // --- STATE ---
   const [services, setServices] = useState(() => {
     const saved = localStorage.getItem("services");
     if (saved) {
@@ -13,167 +14,364 @@ const AdminDashboard = () => {
     return initialServices;
   });
 
-  const [users, setUsers] = useState(() => {
+  const [users] = useState(() => {
     return JSON.parse(localStorage.getItem("users") || "[]");
   });
 
-  // 1. Added 'image' to the state
-  const [newService, setNewService] = useState({ 
-    name: "", 
-    price: "", 
-    description: "", 
-    duration: "",
-    image: "" 
+  const [bookings] = useState(() => {
+    return JSON.parse(localStorage.getItem("bookings") || "[]");
   });
+
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    price: "",
+    description: "",
+    duration: "",
+    image: "",
+  });
+  const [newService, setNewService] = useState({
+    name: "",
+    price: "",
+    description: "",
+    duration: "",
+    image: "",
+  });
+
+  // --- ACTIONS ---
+  const saveServices = (updatedList) => {
+    setServices(updatedList);
+    localStorage.setItem("services", JSON.stringify(updatedList));
+  };
 
   const addService = (e) => {
     e.preventDefault();
-
-    if (!newService.name || !newService.price || !newService.description || !newService.duration || !newService.image) {
-      toast.error("All fields, including image URL, are required");
+    if (
+      !newService.name ||
+      !newService.price ||
+      !newService.duration ||
+      !newService.image
+    ) {
+      toast.error("Required fields missing");
       return;
     }
-
     const updated = [...services, { ...newService, id: Date.now() }];
-    setServices(updated);
-    localStorage.setItem("services", JSON.stringify(updated));
-    
-    setNewService({ name: "", price: "", description: "", duration: "", image: "" });
-    toast.success(`${newService.name} added with image!`);
+    saveServices(updated);
+    setNewService({
+      name: "",
+      price: "",
+      description: "",
+      duration: "",
+      image: "",
+    });
+    toast.success("Service added");
+  };
+
+  const startEdit = (s) => {
+    setEditingId(s.id);
+    setEditForm({ ...s });
+  };
+
+  const saveEdit = (e) => {
+    e.preventDefault();
+    const updated = services.map((s) =>
+      s.id === editingId ? { ...editForm } : s,
+    );
+    saveServices(updated);
+    setEditingId(null);
+    toast.success("Update successful");
   };
 
   const deleteService = (id) => {
     const updated = services.filter((s) => s.id !== id);
-    setServices(updated);
-    localStorage.setItem("services", JSON.stringify(updated));
+    saveServices(updated);
     toast.error("Service removed");
   };
 
-  const deleteUser = (email) => {
-    const updated = users.filter((u) => u.email !== email);
-    setUsers(updated);
-    localStorage.setItem("users", JSON.stringify(updated));
-    toast.error("Account deactivated");
-  };
-
   return (
-    <div className="min-h-screen bg-white text-black py-16 px-6">
-      <div className="max-w-5xl mx-auto space-y-20">
-        <div className="border-b border-gray-100 pb-8">
-          <h1 className="text-4xl font-bold tracking-tighter uppercase">Admin Console</h1>
-          <p className="text-gray-500 mt-2 italic">Monarch Barbershop Management</p>
-        </div>
+    <div className="min-h-screen bg-white text-black py-16 px-6 font-sans">
+      <div className="max-w-6xl mx-auto space-y-24">
+        {/* HEADER */}
+        <header className="border-b border-gray-100 pb-8">
+          <h1 className="text-5xl font-black tracking-tighter uppercase leading-none">
+            Admin Console
+          </h1>
+          <p className="text-gray-400 mt-2 font-medium italic">
+            Monarch Barbershop Management
+          </p>
+        </header>
 
-
+        {/* 1. RECENT APPOINTMENTS (Read-Only) */}
         <section>
           <div className="flex justify-between items-end mb-8">
-            <h2 className="text-2xl font-bold uppercase tracking-tight">Services Inventory</h2>
-            <p className="text-xs font-bold text-gray-400 uppercase">{services.length} Active Services</p>
+            <h2 className="text-2xl font-bold uppercase tracking-tight">
+              Recent Appointments
+            </h2>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+              {bookings.length} Total
+            </p>
           </div>
 
-          <form onSubmit={addService} className="bg-gray-50 p-8 rounded-2xl border border-gray-100 mb-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                className="p-4 bg-white border border-gray-200 rounded-lg focus:border-black outline-none transition"
-                placeholder="Service Name"
-                value={newService.name}
-                onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-              />
-              <input
-                className="p-4 bg-white border border-gray-200 rounded-lg focus:border-black outline-none transition"
-                placeholder="Price (KES)"
-                type="number"
-                value={newService.price}
-                onChange={(e) => setNewService({ ...newService, price: e.target.value })}
-              />
-              <input
-                className="p-4 bg-white border border-gray-200 rounded-lg focus:border-black outline-none transition"
-                placeholder="Duration (e.g., 30 mins)"
-                value={newService.duration}
-                onChange={(e) => setNewService({ ...newService, duration: e.target.value })}
-              />
-    
-              <input
-                className="p-4 bg-white border border-gray-200 rounded-lg focus:border-black outline-none transition"
-                placeholder="Image URL"
-                value={newService.image}
-                onChange={(e) => setNewService({ ...newService, image: e.target.value })}
-              />
-              <input
-                className="p-4 md:col-span-2 bg-white border border-gray-200 rounded-lg focus:border-black outline-none transition"
-                placeholder="Brief Description"
-                value={newService.description}
-                onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-              />
-            </div>
-            <button className="w-full mt-4 bg-black text-white py-4 rounded-lg font-bold hover:bg-gray-800 transition uppercase text-xs tracking-widest">
-              Add Service
-            </button>
-          </form>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bookings.length > 0 ? (
+              bookings
+                .slice()
+                .reverse()
+                .map((b) => (
+                  <div
+                    key={b.id}
+                    className="relative p-6 bg-white border border-gray-100 rounded-2xl shadow-sm transition-all hover:border-gray-200"
+                  >
+                    <div className="absolute top-4 right-4">
+                      <span className="text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter bg-amber-50 text-amber-600 border border-amber-100">
+                        Pending
+                      </span>
+                    </div>
+                    <div className="mb-6">
+                      <p className="text-[10px] font-bold text-[#f7b801] uppercase tracking-[0.15em] mb-1">
+                        {b.date} @ {b.time}
+                      </p>
+                      <h3 className="font-black text-xl uppercase leading-none truncate">
+                        {b.service}
+                      </h3>
+                    </div>
+                    <div className="pt-4 border-t border-gray-50">
+                      <p className="text-sm font-bold text-black">
+                        {b.userName}
+                      </p>
+                      <p className="text-[10px] text-gray-400 italic truncate font-serif">
+                        {b.userEmail}
+                      </p>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="col-span-full py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100 text-center text-gray-400 italic">
+                No active bookings found.
+              </div>
+            )}
+          </div>
+        </section>
 
-          <div className="grid grid-cols-1 gap-6">
+        {/* 2. SERVICES INVENTORY (With Labeled Form) */}
+        <section>
+          <h2 className="text-2xl font-bold uppercase tracking-tight mb-8">
+            Services Inventory
+          </h2>
+
+          {!editingId && (
+            <form
+              onSubmit={addService}
+              className="bg-gray-50 p-8 rounded-3xl border border-gray-100 mb-12"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Service Name
+                  </label>
+                  <input
+                    className="p-4 bg-white border border-gray-100 rounded-xl outline-none focus:border-black transition shadow-sm"
+                    placeholder="e.g. Classic Haircut"
+                    value={newService.name}
+                    onChange={(e) =>
+                      setNewService({ ...newService, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Price (KES)
+                  </label>
+                  <input
+                    className="p-4 bg-white border border-gray-100 rounded-xl outline-none focus:border-black transition shadow-sm"
+                    placeholder="2500"
+                    type="number"
+                    value={newService.price}
+                    onChange={(e) =>
+                      setNewService({ ...newService, price: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Duration
+                  </label>
+                  <input
+                    className="p-4 bg-white border border-gray-100 rounded-xl outline-none focus:border-black transition shadow-sm"
+                    placeholder="45 mins"
+                    value={newService.duration}
+                    onChange={(e) =>
+                      setNewService({ ...newService, duration: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Image URL
+                  </label>
+                  <input
+                    className="p-4 bg-white border border-gray-100 rounded-xl outline-none focus:border-black transition shadow-sm"
+                    placeholder="https://..."
+                    value={newService.image}
+                    onChange={(e) =>
+                      setNewService({ ...newService, image: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                    Description
+                  </label>
+                  <textarea
+                    className="p-4 bg-white border border-gray-100 rounded-xl outline-none focus:border-black transition shadow-sm h-24 resize-none"
+                    placeholder="Brief details about the service..."
+                    value={newService.description}
+                    onChange={(e) =>
+                      setNewService({
+                        ...newService,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <button className="md:col-span-2 bg-black text-white py-5 rounded-xl font-bold uppercase text-[11px] tracking-[0.3em] hover:bg-gray-900 transition mt-2 shadow-lg">
+                  Create New Service
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="space-y-4">
             {services.map((s) => (
               <div
                 key={s.id}
-                className="group flex flex-col md:flex-row justify-between items-start md:items-center p-6 border border-gray-100 rounded-2xl hover:border-black transition-all"
+                className="group p-6 border border-gray-100 rounded-2xl transition-all hover:border-black"
               >
-                <div className="flex items-start md:items-center gap-6">
-                  {/* Thumbnail */}
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    <img src={s.image} alt={s.name} className="w-full h-full object-cover" />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <p className="font-bold text-lg uppercase">{s.name}</p>
-                      <span className="text-[10px] bg-gray-100 px-2 py-1 rounded font-bold uppercase text-gray-500">
-                        {s.duration}
-                      </span>
+                {editingId === s.id ? (
+                  <form
+                    onSubmit={saveEdit}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  >
+                    <input
+                      className="p-3 border rounded-lg"
+                      value={editForm.name}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, name: e.target.value })
+                      }
+                    />
+                    <input
+                      className="p-3 border rounded-lg"
+                      value={editForm.price}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, price: e.target.value })
+                      }
+                    />
+                    <textarea
+                      className="p-3 border rounded-lg md:col-span-2"
+                      value={editForm.description}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                    <div className="flex gap-4">
+                      <button
+                        type="submit"
+                        className="bg-black text-white px-8 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-gray-400 font-bold text-[10px] uppercase underline"
+                      >
+                        Cancel
+                      </button>
                     </div>
-                    <p className="text-gray-500 text-sm max-w-md line-clamp-2">{s.description}</p>
-                    <p className="text-black font-bold">KES {s.price}</p>
+                  </form>
+                ) : (
+                  <div className="flex flex-col md:flex-row justify-between items-center">
+                    <div className="flex items-center gap-6">
+                      <img
+                        src={s.image}
+                        alt={s.name}
+                        className="w-20 h-20 rounded-xl object-cover transition-all"
+                      />
+                      <div>
+                        <h4 className="font-black text-xl uppercase">
+                          {s.name}
+                        </h4>
+                        <p className="text-gray-500 text-sm font-medium">
+                          {s.duration} Mins — KES {s.price}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-6 mt-6 md:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEdit(s)}
+                        className="text-[10px] font-bold uppercase tracking-widest hover:text-[#f7b801]"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteService(s.id)}
+                        className="text-[10px] font-bold text-red-500 uppercase tracking-widest hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => deleteService(s.id)}
-                  className="mt-4 md:mt-0 opacity-0 group-hover:opacity-100 text-red-500 text-xs font-bold uppercase tracking-widest transition-opacity hover:underline"
-                >
-                  Delete
-                </button>
+                )}
               </div>
             ))}
           </div>
         </section>
 
-
-        <section>
-          <h2 className="text-2xl font-bold uppercase tracking-tight mb-8">Client List</h2>
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            <table className="w-full text-left">
+        {/* 3. REGISTERED CLIENTS */}
+        <section className="pb-20">
+          <div className="flex justify-between items-end mb-8">
+            <h2 className="text-2xl font-bold uppercase tracking-tight">
+              Registered Clients
+            </h2>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+              {users.length} Members
+            </p>
+          </div>
+          <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+            <table className="w-full text-left border-collapse">
               <thead className="bg-gray-50 text-gray-400 text-[10px] uppercase font-bold tracking-[0.2em]">
                 <tr>
-                  <th className="p-6">Member Name</th>
+                  <th className="p-6">Client Name</th>
                   <th className="p-6">Email Address</th>
-                  <th className="p-6 text-right">Access Control</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {users.map((u) => (
-                  <tr key={u.email} className="hover:bg-gray-50/50 transition">
-                    <td className="p-6 font-bold text-sm">{u.name}</td>
-                    <td className="p-6 text-sm text-gray-500 italic">{u.email}</td>
-                    <td className="p-6 text-right">
-                      {u.email !== "admin@monarch.com" && (
-                        <button
-                          onClick={() => deleteUser(u.email)}
-                          className="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-widest transition"
-                        >
-                          Revoke Access
-                        </button>
-                      )}
+                {users.length > 0 ? (
+                  users.map((u) => (
+                    <tr
+                      key={u.email}
+                      className="hover:bg-gray-50/50 transition"
+                    >
+                      <td className="p-6 font-bold text-sm uppercase tracking-tight">
+                        {u.name}
+                      </td>
+                      <td className="p-6 text-sm text-gray-400 italic font-serif">
+                        {u.email}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="2"
+                      className="p-10 text-center text-gray-400 italic"
+                    >
+                      No registered members yet.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
