@@ -5,68 +5,89 @@ import toast from "react-hot-toast";
 const Profile = () => {
   const navigate = useNavigate();
 
-
   const [user] = useState(() => {
     return JSON.parse(localStorage.getItem("user")) || null;
   });
 
-  const [userBookings] = useState(() => {
-    if (!user) return [];
-    const allBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-    const filtered = allBookings.filter(b => b.userEmail === user.email);
-    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-  });
+  const allBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+
+  const userBookings = user
+    ? allBookings
+        .filter((b) => b.userEmail === user.email)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+    : [];
 
   useEffect(() => {
-  
     if (!user) {
       toast.error("Please login to view your profile");
       navigate("/login");
     }
   }, [user, navigate]);
 
+  const handleCancel = (id) => {
+    if (!window.confirm("Are you sure you want to cancel this booking?"))
+      return;
+
+    const updatedGlobal = allBookings.filter((b) => b.id !== id);
+    localStorage.setItem("bookings", JSON.stringify(updatedGlobal));
+
+    toast.error("Booking cancelled");
+    window.location.reload();
+  };
+
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-white text-black py-16 px-6">
       <div className="max-w-4xl mx-auto">
-
+        {/* Header Section */}
         <div className="border-b border-gray-100 pb-8 mb-12 flex justify-between items-end">
           <div>
-            <h1 className="text-4xl font-bold tracking-tighter uppercase">My Profile</h1>
+            <h1 className="text-4xl font-bold tracking-tighter uppercase">
+              My Profile
+            </h1>
             <p className="text-gray-500 mt-2">Welcome back, {user.name}</p>
           </div>
           <div className="text-right">
-            <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Member Since</span>
+            <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Member Since
+            </span>
             <span className="text-sm font-medium">April 2026</span>
           </div>
         </div>
 
-        {/* Account Details Card */}
+        {/* Account Details */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="p-6 bg-gray-50 rounded-xl">
-            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Full Name</p>
+            <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+              Full Name
+            </p>
             <p className="font-semibold">{user.name}</p>
           </div>
           <div className="p-6 bg-gray-50 rounded-xl">
-            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Email Address</p>
+            <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+              Email Address
+            </p>
             <p className="font-semibold">{user.email}</p>
           </div>
           <div className="p-6 bg-gray-50 rounded-xl">
-            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Account Type</p>
+            <p className="text-xs font-bold text-gray-400 uppercase mb-1">
+              Account Type
+            </p>
             <p className="font-semibold capitalize">{user.role || "Client"}</p>
           </div>
         </div>
 
+        <h2 className="text-2xl font-bold mb-6 tracking-tight">
+          Your Appointments
+        </h2>
 
-        <h2 className="text-2xl font-bold mb-6 tracking-tight">Your Appointments</h2>
-        
         {userBookings.length > 0 ? (
           <div className="space-y-4">
             {userBookings.map((booking) => (
-              <div 
-                key={booking.id} 
-                className="flex flex-col md:flex-row md:items-center justify-between p-6 border border-gray-100 rounded-xl hover:shadow-md transition"
+              <div
+                key={booking.id}
+                className="flex flex-col md:flex-row md:items-center justify-between p-6 border border-gray-100 rounded-xl hover:shadow-md transition group"
               >
                 <div>
                   <h3 className="font-bold text-lg">{booking.service}</h3>
@@ -77,24 +98,35 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="mt-4 md:mt-0 flex items-center gap-6">
-                  <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${
-                    booking.status === 'Completed' 
-                    ? 'bg-black text-white' 
-                    : 'bg-green-50 text-green-700'
-                  }`}>
+                  <span
+                    className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${
+                      booking.status === "Completed"
+                        ? "bg-black text-white"
+                        : "bg-green-50 text-green-700"
+                    }`}
+                  >
                     {booking.status || "Confirmed"}
                   </span>
-                  <button className="text-sm font-bold text-gray-400 hover:text-black transition">
-                    Details
-                  </button>
+
+                  {/* 3. Updated Cancel Button */}
+                  {booking.status !== "Completed" && (
+                    <button
+                      onClick={() => handleCancel(booking.id)}
+                      className="text-sm font-bold text-red-400 hover:text-red-600 transition md:opacity-0 md:group-hover:opacity-100"
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-20 border-2 border-dashed border-gray-100 rounded-2xl">
-            <p className="text-gray-400 mb-4">You haven't booked any sessions yet.</p>
-            <button 
+            <p className="text-gray-400 mb-4">
+              You haven't booked any sessions yet.
+            </p>
+            <button
               onClick={() => navigate("/booking")}
               className="bg-black text-white px-6 py-2 rounded-md font-bold text-sm"
             >
