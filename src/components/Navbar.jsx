@@ -4,22 +4,30 @@ import toast from "react-hot-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
- const [user, setUser] = useState(() => {
+  const [user, setUser] = useState(() => {
     return JSON.parse(localStorage.getItem("user")) || null;
   });
 
- useEffect(() => {
-    const handleStorageChange = () => {
+  useEffect(() => {
+    const handleAuthUpdate = () => {
       const loggedInUser = JSON.parse(localStorage.getItem("user"));
       setUser(loggedInUser);
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener("storage", handleAuthUpdate);
+
+    window.addEventListener("authChange", handleAuthUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleAuthUpdate);
+      window.removeEventListener("authChange", handleAuthUpdate);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+
+    window.dispatchEvent(new Event("authChange"));
     setUser(null);
     toast.success("Logged out successfully");
     navigate("/login");
@@ -51,10 +59,13 @@ const Navbar = () => {
             <Link to="/profile" className="hover:text-gray-300 transition">
               My Profile
             </Link>
-            
+
             {/* Show Admin link only if role is admin */}
             {user.role === "admin" && (
-              <Link to="/admin" className="text-yellow-500 hover:text-yellow-400 font-bold transition">
+              <Link
+                to="/admin"
+                className="text-yellow-500 hover:text-yellow-400 font-bold transition"
+              >
                 Admin
               </Link>
             )}

@@ -12,31 +12,41 @@ const Login = () => {
 
     const users = JSON.parse(localStorage.getItem("users") || "[]");
 
-
-    const user = users.find((u) => u.email === email && u.password === password);
+    const user = users.find(
+      (u) => u.email === email && u.password === password,
+    );
 
     if (email === "admin@monarch.com" && password === "admin123") {
       const adminUser = { name: "Admin Manager", email: email, role: "admin" };
       localStorage.setItem("user", JSON.stringify(adminUser));
+      window.dispatchEvent(new Event("authChange"));
+
+      toast.success("Admin access granted. Welcome, Boss.");
       navigate("/admin");
       return;
     }
 
     if (user) {
-    localStorage.setItem("user", JSON.stringify(user));
-    toast.success(`Welcome back, ${user.name}!`); // Nice success toast
-    navigate("/profile");
-  } else {
-    toast.error("Invalid credentials. Please try again."); // Error toast
-  }
-  };
+      localStorage.setItem("user", JSON.stringify(user));
 
+      window.dispatchEvent(new Event("authChange"));
+
+      toast.success(`Welcome back, ${user.name}!`);
+      navigate("/profile");
+    } else {
+      toast.error("Invalid credentials. Please try again.");
+    }
+  };
   return (
     <div className="min-h-[85vh] flex items-center justify-center bg-white px-6">
       <div className="max-w-md w-full border border-gray-100 p-10 rounded-2xl shadow-2xl">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold tracking-tighter uppercase">Monarch Barbers</h2>
-          <p className="text-gray-400 mt-2 text-sm">Welcome back to the throne.</p>
+          <h2 className="text-3xl font-bold tracking-tighter uppercase">
+            Monarch Barbers
+          </h2>
+          <p className="text-gray-400 mt-2 text-sm">
+            Welcome back to the throne.
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -84,9 +94,6 @@ const Login = () => {
             </Link>
           </p>
         </div>
-        
-  
-       
       </div>
     </div>
   );
