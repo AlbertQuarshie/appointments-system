@@ -9,6 +9,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import { Toaster } from "react-hot-toast";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./pages/ProtectedRoutes";
 function App() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -18,11 +19,34 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
-          <Route path="/booking" element={<Booking/>}/>
-          <Route path="/profile" element={<Profile/>}/>
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+
+          <Route
+            path="/booking"
+            element={
+              <ProtectedRoute>
+                <Booking />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
       <Footer />
